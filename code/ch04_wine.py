@@ -5,7 +5,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+
 import matplotlib.pyplot as plt 
+
 dt = load_wine()
 from ch04_sbs import SBS
 
@@ -50,15 +53,31 @@ X_test_std = scaler.transform(x_test)
 # plt.legend(loc='upper left')
 # #ax.legend(loc='upper center',bbox_to_anchor=(1.38,1.03),ncol=1,fancybox=True )
 
-knn = KNeighborsClassifier(n_neighbors=2)
-sbs = SBS(knn,k_features=1)
-sbs.fit(X_train_std,y_train)
+# knn = KNeighborsClassifier(n_neighbors=2)
+# sbs = SBS(knn,k_features=1)
+# sbs.fit(X_train_std,y_train)
 
-k_feat = [len(k) for k in sbs.subsets_]
-plt.plot(k_feat,sbs.scores_,marker='o')
-plt.ylim([0.7,1.1])
-plt.ylabel('Accuracy')
-plt.xlabel('No of features')
-plt.grid()
+# k_feat = [len(k) for k in sbs.subsets_]
+# plt.plot(k_feat,sbs.scores_,marker='o')
+# plt.ylim([0.7,1.1])
+# plt.ylabel('Accuracy')
+# plt.xlabel('No of features')
+# plt.grid()
+# plt.show()
+
+
+feat_labels = pd.Index(dt.feature_names)
+forest = RandomForestClassifier(n_estimators=10000,random_state=0,n_jobs=-1)
+forest.fit(X_train_std,y_train)
+importance = forest.feature_importances_ 
+indices = np.argsort(importance)[::-1]
+
+for f in range(X_train.shape[1]):
+    print("%2d) %-*s %f" % (f+1,30,feat_labels[indices[f]],importance[indices[f]]))
+
+plt.title('Feature Importances')
+plt.bar(range(X_train.shape[1]),importance[indices],color='lightblue',align='center')
+plt.xticks(range(X_train.shape[1]),feat_labels[indices],rotation=90)
+plt.xlim(-1,X_train.shape[1])
+plt.tight_layout()
 plt.show()
-
